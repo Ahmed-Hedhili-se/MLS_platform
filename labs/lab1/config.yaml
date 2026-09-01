@@ -1,0 +1,23 @@
+required_files:
+  - filename: employee_data.csv
+    source: labs/lab1/employee_data.csv
+
+notebooks:
+  - notebook_filename: preprocessing_lab.ipynb
+    hidden_tests_module: labs/lab1/hidden_tests.py
+
+    checks:
+      - name: missing_values
+        call: "missing_values_test(df, exp_median, perf_median)"
+
+      - name: encoding
+        call: "encoding_test(df_encoded)"
+
+      - name: outliers
+        call: "outlier_test(df_clean, lower_bound, upper_bound)"
+
+      - name: split
+        call: "split_test(X_train, X_test, y_train, y_test)"
+
+      - name: scaling
+        call: "scaling_test(X_train_scaled, X_test_scaled)"

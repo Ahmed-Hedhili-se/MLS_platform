@@ -1,0 +1,61 @@
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment / secrets
+.env
+.env.*
+
+# ...but the template carries no secrets and must be committed.
+!.env.example
+
+# Generated grading outputs
+results/
+reports/
+analytics_outputs/
+dummy_results/
+
+# Temporary student files
+temp_student/
+tempstudent/
+temp/
+tmp/
+
+# Python tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+# SQLite databases — contain real student records, never commit
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Submission snapshots (student code)
+data/submissions/
+
+# Editor/backup leftovers
+*.bak
+
+# Database backups (contain student records)
+backups/

@@ -1,0 +1,89 @@
+required_files:
+  - filename: employee_data.csv
+    source: labs/lab3/employee_data.csv
+
+notebooks:
+
+  - notebook_filename: svm_scratch.ipynb
+    hidden_tests_module: labs/lab3/hidden_tests_scratch.py
+
+    checks:
+      - name: hinge_loss
+        call: "hinge_loss_test(hinge_loss)"
+
+      - name: cost
+        call: "svm_cost_test(svm_cost)"
+
+      - name: gradient
+        call: "svm_gradient_test(svm_gradient)"
+
+      - name: init
+        call: "linear_svm_init_test(LinearSVM)"
+
+      - name: fit
+        call: "linear_svm_fit_test(LinearSVM)"
+
+      - name: decision_function
+        call: "linear_svm_decision_function_test(LinearSVM)"
+
+      - name: predict
+        call: "linear_svm_predict_test(LinearSVM)"
+
+      - name: training
+        call: "linear_svm_training_test(LinearSVM)"
+
+  - notebook_filename: svm_dual.ipynb
+    hidden_tests_module: labs/lab3/hidden_tests_dual.py
+
+    checks:
+      - name: kernel_matrix
+        call: "kernel_matrix_test(kernel_matrix)"
+
+      - name: dual_objective
+        call: "dual_objective_test(dual_objective)"
+
+      - name: init
+        call: "dual_svm_init_test(DualSVM)"
+
+      - name: fit
+        call: "dual_fit_test(DualSVM)"
+
+      - name: alpha_constraints
+        call: "alpha_constraints_test(DualSVM)"
+
+      - name: support_vectors
+        call: "support_vectors_test(DualSVM)"
+
+      - name: decision_function
+        call: "dual_decision_function_test(DualSVM)"
+
+      - name: predict
+        call: "dual_predict_test(DualSVM)"
+
+      - name: training
+        call: "dual_training_test(DualSVM)"
+
+      - name: primal_dual_consistency
+        call: "primal_dual_consistency_test(DualSVM)"
+
+  - notebook_filename: svm_sklearn.ipynb
+    hidden_tests_module: labs/lab3/hidden_tests_sklearn.py
+
+    checks:
+      - name: split
+        call: "split_test(X_train, X_test, y_train, y_test)"
+
+      - name: linear_svc
+        call: "linear_svc_test(linear_svc)"
+
+      - name: polynomial_svc
+        call: "polynomial_svc_test(poly_svc)"
+
+      - name: rbf_svc
+        call: "rbf_svc_test(rbf_svc)"
+
+      - name: sigmoid_svc
+        call: "sigmoid_svc_test(sigmoid_svc)"
+
+      - name: kernel_comparison
+        call: "kernel_comparison_test(models)"

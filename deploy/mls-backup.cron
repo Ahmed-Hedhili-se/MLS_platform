@@ -1,0 +1,6 @@
+# Back up the MLS database every night at 02:30 and prune after 30 days.
+# Install to /etc/cron.d/mls-backup (root-owned, mode 644).
+
+MLS_PROJECT=/opt/MLS_platform/Mls-Platform
+
+30 2 * * * mls /usr/local/bin/mls-backup >> /var/log/mls-backup.log 2>&1

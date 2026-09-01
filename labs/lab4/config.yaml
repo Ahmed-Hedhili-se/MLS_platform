@@ -1,0 +1,69 @@
+required_files:
+  - filename: magic04.data
+    source: labs/lab4/magic04.data
+
+notebooks:
+
+  - notebook_filename: knn_scratch.ipynb
+    weight: 0.60
+    hidden_tests_module: labs/lab4/hidden_tests_scratch.py
+
+    checks:
+      - name: split
+        call: "split_test(X_train, X_val, X_test, y_train, y_val, y_test)"
+
+      - name: euclidean_distance
+        call: "euclidean_distance_test(distance)"
+
+      - name: manhattan_distance
+        call: "manhattan_distance_test(distance)"
+
+      - name: minkowski_distance
+        call: "minkowski_distance_test(distance)"
+
+      - name: chebyshev_distance
+        call: "chebyshev_distance_test(distance)"
+
+      - name: distance_validation
+        call: "distance_validation_test(distance)"
+
+      - name: init
+        call: "init_test(KNNClassifier)"
+
+      - name: fit
+        call: "fit_test(KNNClassifier)"
+
+      - name: neighbors
+        call: "neighbors_test(KNNClassifier)"
+
+      - name: uniform_vote
+        call: "uniform_vote_test(KNNClassifier)"
+
+      - name: distance_vote
+        call: "distance_vote_test(KNNClassifier)"
+
+      - name: predict
+        call: "predict_test(KNNClassifier)"
+
+      - name: parameter_validation
+        call: "parameter_validation_test(KNNClassifier)"
+
+  - notebook_filename: knn_sklearn.ipynb
+    weight: 0.40
+    hidden_tests_module: labs/lab4/hidden_tests_sklearn.py
+
+    checks:
+      - name: split
+        call: "split_test(X_train, X_val, X_test, y_train, y_val, y_test)"
+
+      - name: knn_model
+        call: "knn_model_test(knn)"
+
+      - name: pipeline
+        call: "pipeline_test(knn_pipeline)"
+
+      - name: k_selection
+        call: "k_selection_test(k_values, cv_scores, best_k)"
+
+      - name: final_model
+        call: "final_model_test(final_knn, X_test, y_test)"

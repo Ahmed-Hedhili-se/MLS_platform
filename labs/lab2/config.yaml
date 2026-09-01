@@ -1,0 +1,54 @@
+required_files:
+  - filename: employee_data.csv
+    source: labs/lab2/employee_data.csv
+
+notebooks:
+  - notebook_filename: lin_log_scratch.ipynb
+    hidden_tests_module: labs/lab2/hidden_tests_scratch.py
+
+    checks:
+      - name: split
+        call: "split_test(X_train, X_test, y_salary_train, y_salary_test, y_attrition_train, y_attrition_test)"
+
+      - name: predict_linear
+        call: "predict_linear_test(predict_linear)"
+
+      - name: compute_cost_linear
+        call: "compute_cost_linear_test(compute_cost_linear)"
+
+      - name: compute_gradient_linear
+        call: "compute_gradient_linear_test(compute_gradient_linear)"
+
+      - name: gradient_descent
+        call: "gradient_descent_test(gradient_descent, compute_cost_linear, compute_gradient_linear)"
+
+      - name: train_linear
+        call: "train_linear_test(w_final, b_final, J_history, r2_test)"
+
+      - name: sigmoid
+        call: "sigmoid_test(sigmoid)"
+
+      - name: predict_logistic
+        call: "predict_logistic_test(predict_logistic)"
+
+      - name: compute_cost_logistic
+        call: "compute_cost_logistic_test(compute_cost_logistic)"
+
+      - name: compute_gradient_logistic
+        call: "compute_gradient_logistic_test(compute_gradient_logistic)"
+
+      - name: train_logistic
+        call: "train_logistic_test(w_final_log, b_final_log, J_history_log, acc_test)"
+
+  - notebook_filename: lin_log_sklearn.ipynb
+    hidden_tests_module: labs/lab2/hidden_tests_sklearn.py
+
+    checks:
+      - name: split
+        call: "split_test(X_train, X_test, y_salary_train, y_salary_test, y_attrition_train, y_attrition_test)"
+
+      - name: linear_model
+        call: "linear_model_test(lin_reg, X_test, y_salary_test)"
+
+      - name: logistic_model
+        call: "logistic_model_test(log_reg, X_test, y_attrition_test)"

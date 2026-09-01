@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+    Archived Labs
+{% endblock %}
+
+
+{% block content %}
+
+    <!-- ================================================= -->
+    <!-- HEADER -->
+    <!-- ================================================= -->
+
+    <header class="header">
+
+        <div class="page-header">
+
+            <div>
+
+                <p class="eyebrow">
+                    Teacher Workspace
+                </p>
+
+                <h1>
+                    Archived Labs
+                </h1>
+
+                <p class="subtitle">
+                    Laboratories that have been archived.
+                    Archived labs are hidden from students and closed
+                    for submissions.
+                </p>
+
+            </div>
+
+
+            <a
+                class="button button-secondary"
+                href="{{ url_for('teacher_dashboard') }}"
+            >
+                ← Dashboard
+            </a>
+
+        </div>
+
+    </header>
+
+
+    <main>
+
+        {% if archived_labs %}
+
+            <div class="submissions-list">
+
+                {% for lab in archived_labs %}
+
+                    <section class="card">
+
+                        <div class="lab-management-header">
+
+                            <div class="lab-management-info">
+
+                                <div class="lab-title-row">
+
+                                    <h2>
+                                        {{ lab.name }}
+                                    </h2>
+
+                                    <span class="pill pill-archived">
+                                        Archived
+                                    </span>
+
+                                </div>
+
+
+                                {% if lab.category %}
+
+                                    <div class="lab-meta">
+
+                                        <span>
+                                            {{ lab.category }}
+                                        </span>
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <div class="button-group lab-management-actions">
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'restore_lab',
+                                        lab_id=lab.id
+                                    ) }}"
+                                >
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                    <button
+                                        type="submit"
+                                        class="button button-primary"
+                                        onclick="return confirm(
+                                            'Restore this lab?'
+                                        );"
+                                    >
+                                        Restore
+                                    </button>
+
+                                </form>
+
+
+                                <a
+                                    class="button button-secondary"
+                                    href="{{ url_for(
+                                        'edit_lab',
+                                        lab_id=lab.id
+                                    ) }}"
+                                >
+                                    Edit
+                                </a>
+
+
+                                <a
+                                    class="button button-secondary"
+                                    href="{{ url_for(
+                                        'lab_details',
+                                        lab_id=lab.id
+                                    ) }}"
+                                >
+                                    Details
+                                </a>
+
+                            </div>
+
+                        </div>
+
+
+                        {% if lab.description %}
+
+                            <p class="lab-description">
+                                {{ lab.description }}
+                            </p>
+
+                        {% endif %}
+
+                    </section>
+
+                {% endfor %}
+
+            </div>
+
+
+        {% else %}
+
+            <div class="empty-section">
+
+                <h3>
+                    No archived labs
+                </h3>
+
+                <p class="empty-message">
+                    There are currently no archived laboratories.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </main>
+
+{% endblock %}

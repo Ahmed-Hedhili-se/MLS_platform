@@ -1,0 +1,44 @@
+[Unit]
+Description=MLS Platform (Machine Learning SUP'COM lab submissions)
+After=network-online.target docker.service
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mls
+Group=mls
+
+# Adjust if the repository lives elsewhere.
+WorkingDirectory=/opt/MLS_platform/Mls-Platform
+
+# The app reads .env itself; this only sets what must exist before
+# Python starts. Everything else belongs in .env.
+Environment=PYTHONUNBUFFERED=1
+
+ExecStart=/opt/MLS_platform/Mls-Platform/.venv/bin/python -m webapp.app
+
+Restart=always
+RestartSec=5
+
+# Grading containers are children of this process's docker client, not
+# of the unit, so a restart does not kill in-flight grading. Any
+# submission left mid-grade is reset on the next start by
+# grading_queue.recover_interrupted_jobs().
+TimeoutStopSec=30
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mls
+
+# --- Hardening -------------------------------------------------
+# Deliberately NOT PrivateDevices/PrivateNetwork: the app talks to the
+# Docker socket and to GitHub. These are the restrictions that do not
+# conflict with that.
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

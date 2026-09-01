@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#060911">
+
+    <meta
+        name="description"
+        content="Machine Learning Sup'Com — lab submission and grading platform."
+    >
+
+    <title>
+        {% block title %}
+            MLS Platform
+        {% endblock %}
+    </title>
+
+    <link
+        rel="icon"
+        type="image/png"
+        href="{{ url_for(
+            'static',
+            filename='img/mls-logo.png'
+        ) }}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for(
+            'static',
+            filename='style.css'
+        ) }}"
+    >
+
+    {% block extra_head %}
+    {% endblock %}
+
+</head>
+
+
+<body>
+
+<a class="skip-link" href="#main">
+    Skip to content
+</a>
+
+
+<!-- ================================================= -->
+<!-- SITE HEADER -->
+<!-- ================================================= -->
+
+<header class="site-header">
+
+    <div class="site-header-inner">
+
+        <!-- ============================================= -->
+        <!-- BRAND -->
+        <!-- ============================================= -->
+
+        <a
+            class="brand"
+            href="{{ url_for('home') }}"
+        >
+
+            <img
+                class="brand-logo"
+                src="{{ url_for(
+                    'static',
+                    filename='img/mls-logo.png'
+                ) }}"
+                alt="Machine Learning Sup'Com club logo"
+                width="40"
+                height="40"
+            >
+
+            <span class="brand-text">
+
+                <span class="brand-name">
+                    MLS Platform
+                </span>
+
+                <span class="brand-sub">
+                    Machine Learning Sup'Com
+                </span>
+
+            </span>
+
+        </a>
+
+
+        <!-- ============================================= -->
+        <!-- MOBILE MENU TOGGLE -->
+        <!-- ============================================= -->
+
+        <input
+            type="checkbox"
+            id="nav-toggle"
+            class="nav-toggle"
+        >
+
+        <label
+            for="nav-toggle"
+            class="nav-toggle-label"
+            aria-label="Toggle navigation"
+        >
+            <span></span>
+        </label>
+
+
+        <!-- ============================================= -->
+        <!-- NAVIGATION -->
+        <!-- ============================================= -->
+
+        <nav
+            class="site-nav"
+            aria-label="Main navigation"
+        >
+
+            <a
+                class="nav-link {% if request.endpoint == 'home' %}is-active{% endif %}"
+                href="{{ url_for('home') }}"
+            >
+                Labs
+            </a>
+
+
+            {% if session.get("student_id") %}
+
+
+                <!-- ===================================== -->
+                <!-- STUDENT NOTIFICATIONS -->
+                <!-- ===================================== -->
+
+                {% if session.get("role") != "teacher" %}
+
+                    <a
+                        class="nav-link {% if request.endpoint == 'notifications' %}is-active{% endif %}"
+                        href="{{ url_for('notifications') }}"
+                    >
+
+                        Notifications
+
+                        {% if unread_notification_count > 0 %}
+
+                            <span class="nav-badge">
+                                {{ unread_notification_count }}
+                            </span>
+
+                        {% endif %}
+
+                    </a>
+
+                {% endif %}
+
+
+                <!-- ===================================== -->
+                <!-- TEACHER DASHBOARD -->
+                <!-- ===================================== -->
+
+                {% if session.get("role") == "teacher" %}
+
+                    <a
+                        class="nav-link {% if request.endpoint == 'teacher_dashboard' %}is-active{% endif %}"
+                        href="{{ url_for('teacher_dashboard') }}"
+                    >
+                        Teacher Dashboard
+                    </a>
+
+                {% endif %}
+
+
+                <!-- ===================================== -->
+                <!-- USER -->
+                <!-- ===================================== -->
+
+                <span class="user-chip">
+
+                    <span
+                        class="avatar"
+                        aria-hidden="true"
+                    >
+                        {{ (session.get("github_username") or "?")[:1]|upper }}
+                    </span>
+
+                    <span class="user-chip-meta">
+
+                        <span class="user-chip-name">
+                            {{ session.get("github_username") }}
+                        </span>
+
+                        <span class="user-chip-role">
+                            {% if session.get("role") == "teacher" %}
+                                Teacher
+                            {% else %}
+                                Student
+                            {% endif %}
+                        </span>
+
+                    </span>
+
+                </span>
+
+
+                <a
+                    class="nav-link"
+                    href="{{ url_for('logout') }}"
+                >
+                    Log out
+                </a>
+
+
+            {% else %}
+
+                <a
+                    class="button button-primary button-sm"
+                    href="{{ url_for('login') }}"
+                >
+                    Sign in with GitHub
+                </a>
+
+            {% endif %}
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+<!-- ================================================= -->
+<!-- MAIN -->
+<!-- ================================================= -->
+
+<main
+    id="main"
+    class="container"
+>
+
+    <!-- ============================================= -->
+    <!-- FLASH MESSAGES -->
+    <!-- ============================================= -->
+
+    {% with messages = get_flashed_messages(
+        with_categories=true
+    ) %}
+
+        {% if messages %}
+
+            <div class="flash-stack">
+
+                {% for category, message in messages %}
+
+                    <div
+                        class="alert
+                            {%- if category == 'success' %} alert-success
+                            {%- elif category == 'warning' %} alert-warning
+                            {%- elif category == 'danger' or category == 'error' %} alert-error
+                            {%- else %} alert-info
+                            {%- endif %}"
+                        role="status"
+                    >
+
+                        <strong>
+                            {{ message }}
+                        </strong>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+    {% endwith %}
+
+
+    {% block content %}
+    {% endblock %}
+
+</main>
+
+
+<!-- ================================================= -->
+<!-- SITE FOOTER -->
+<!-- ================================================= -->
+
+<footer class="site-footer">
+
+    <div class="site-footer-inner">
+
+        <span class="site-footer-brand">
+
+            <img
+                src="{{ url_for(
+                    'static',
+                    filename='img/mls-logo.png'
+                ) }}"
+                alt=""
+                width="26"
+                height="26"
+            >
+
+            Machine Learning Sup'Com
+
+        </span>
+
+        <span>
+            Lab submission &amp; automated grading platform
+        </span>
+
+    </div>
+
+</footer>
+
+
+{% block extra_scripts %}
+{% endblock %}
+
+</body>
+
+</html>

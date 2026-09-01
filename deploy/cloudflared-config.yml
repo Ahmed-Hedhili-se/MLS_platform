@@ -1,0 +1,25 @@
+# Cloudflare Tunnel configuration for the MLS platform.
+#
+# Install to /etc/cloudflared/config.yml after running:
+#   cloudflared tunnel login
+#   cloudflared tunnel create mls
+#   cloudflared tunnel route dns mls mls.your-domain.example
+#
+# Replace TUNNEL-UUID and the hostname below with your own.
+
+tunnel: TUNNEL-UUID
+credentials-file: /etc/cloudflared/TUNNEL-UUID.json
+
+ingress:
+
+  - hostname: mls.your-domain.example
+    service: http://127.0.0.1:5000
+
+    originRequest:
+      # Grading is queued, so requests are short. This only needs to
+      # outlast a slow page render, not a grading run.
+      connectTimeout: 30s
+      noTLSVerify: false
+
+  # Required: cloudflared refuses to start without a catch-all.
+  - service: http_status:404

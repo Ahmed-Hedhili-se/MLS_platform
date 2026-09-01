@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+    {{ lab.name }} — Lab Details
+{% endblock %}
+
+
+{% block content %}
+
+    {% set is_teacher = session.get("role") == "teacher" %}
+
+    {% set assignment_url = lab.github_url|external_url %}
+    {% set solution_link = lab.solution_url|external_url %}
+    {% set video_link = lab.video_url|external_url %}
+
+
+    <!-- ================================================= -->
+    <!-- LAB HEADER -->
+    <!-- ================================================= -->
+
+    <header class="header">
+
+        <div class="page-header">
+
+            <div>
+
+                <p class="eyebrow">
+                    {{ lab.category or "Laboratory" }}
+                </p>
+
+                <h1>
+                    {{ lab.name }}
+                </h1>
+
+                {% if lab.description %}
+
+                    <p class="lab-description">
+                        {{ lab.description }}
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="button-group">
+
+                <a
+                    class="button button-secondary"
+                    href="{{ url_for(
+                        'lab_page',
+                        lab_id=lab.id
+                    ) }}"
+                >
+                    Back to Lab
+                </a>
+
+
+                {% if is_teacher %}
+
+                    <a
+                        class="button button-secondary"
+                        href="{{ url_for(
+                            'edit_lab',
+                            lab_id=lab.id
+                        ) }}"
+                    >
+                        Edit Lab
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- ================================================= -->
+    <!-- LAB OVERVIEW -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <div class="page-header">
+
+            <div>
+
+                <h2>
+                    Lab Overview
+                </h2>
+
+                <p class="subtitle">
+                    Information and resources for this laboratory.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {% if lab.description %}
+
+            <p>
+                {{ lab.description }}
+            </p>
+
+        {% else %}
+
+            <p class="muted">
+                No description has been added for this laboratory yet.
+            </p>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- ASSIGNMENT -->
+    <!-- ================================================= -->
+
+    <section class="card card-accent">
+
+        <div class="page-header">
+
+            <div>
+
+                <h2>
+                    Assignment
+                </h2>
+
+                <p class="subtitle">
+                    Official laboratory assignment.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {% if assignment_url %}
+
+            <a
+                class="button button-primary"
+                href="{{ assignment_url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Open Assignment on GitHub ↗
+            </a>
+
+        {% else %}
+
+            <p class="muted">
+                No assignment repository has been configured yet.
+            </p>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- SOLUTION -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <div class="page-header">
+
+            <div>
+
+                <h2>
+                    Solution
+                </h2>
+
+                <p class="subtitle">
+                    Official solution and explanations.
+                </p>
+
+            </div>
+
+
+            {% if is_teacher %}
+
+                <span class="pill pill-brand">
+                    Teacher only
+                </span>
+
+            {% endif %}
+
+        </div>
+
+
+        {% if is_teacher and solution_link %}
+
+            <a
+                class="button button-secondary"
+                href="{{ solution_link }}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Open Solution ↗
+            </a>
+
+        {% else %}
+
+            <div class="empty-section">
+
+                <h3>
+                    Solution not available yet
+                </h3>
+
+                <p class="empty-message">
+                    The teacher has not published a solution for this
+                    laboratory yet.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- VIDEO EXPLANATION -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <div class="page-header">
+
+            <div>
+
+                <h2>
+                    Video Explanation
+                </h2>
+
+                <p class="subtitle">
+                    Explanation of common mistakes, weaknesses,
+                    and important concepts.
+                </p>
+
+            </div>
+
+
+            {% if is_teacher %}
+
+                <span class="pill pill-brand">
+                    Teacher only
+                </span>
+
+            {% endif %}
+
+        </div>
+
+
+        {% if is_teacher and video_link %}
+
+            <a
+                class="button button-secondary"
+                href="{{ video_link }}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Open Video ↗
+            </a>
+
+        {% else %}
+
+            <div class="empty-section">
+
+                <h3>
+                    No video available
+                </h3>
+
+                <p class="empty-message">
+                    A video explanation will appear here when the teacher
+                    publishes one.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- TEACHER NOTES -->
+    <!-- ================================================= -->
+
+    {% if is_teacher %}
+
+        <section class="card">
+
+            <div class="page-header">
+
+                <div>
+
+                    <h2>
+                        Teacher Notes
+                    </h2>
+
+                    <p class="subtitle">
+                        Private notes recorded for this laboratory.
+                    </p>
+
+                </div>
+
+
+                <span class="pill pill-brand">
+                    Teacher only
+                </span>
+
+            </div>
+
+
+            {% if lab.teacher_notes %}
+
+                <div class="check-item">
+
+                    <p>{{ lab.teacher_notes }}</p>
+
+                </div>
+
+            {% else %}
+
+                <p class="muted">
+                    No notes have been recorded for this laboratory.
+                </p>
+
+            {% endif %}
+
+        </section>
+
+    {% endif %}
+
+
+    <!-- ================================================= -->
+    <!-- NAVIGATION -->
+    <!-- ================================================= -->
+
+    <footer class="page-footer">
+
+        <a
+            class="button button-secondary"
+            href="{{ url_for(
+                'lab_page',
+                lab_id=lab.id
+            ) }}"
+        >
+            ← Back to Lab
+        </a>
+
+
+        <a
+            class="button button-secondary"
+            href="{{ url_for('home') }}"
+        >
+            Home
+        </a>
+
+    </footer>
+
+{% endblock %}

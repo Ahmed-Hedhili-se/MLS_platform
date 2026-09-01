@@ -1,0 +1,1375 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+    {{ lab.name }} — Teacher — MLS Platform
+{% endblock %}
+
+
+{% block content %}
+
+    {% set assignment_url = lab.github_url|external_url %}
+
+
+    <!-- ================================================= -->
+    <!-- LAB HEADER -->
+    <!-- ================================================= -->
+
+    <header class="header">
+
+        <div class="page-header">
+
+            <div>
+
+                <p class="eyebrow">
+                    Teacher Lab Management
+                </p>
+
+                <h1>
+                    {{ lab.name }}
+                </h1>
+
+                {% if lab.description %}
+
+                    <p class="lab-description">
+                        {{ lab.description }}
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="button-group">
+
+                <a
+                    class="button button-secondary"
+                    href="{{ url_for(
+                        'teacher_lab_submissions',
+                        lab_id=lab.id
+                    ) }}"
+                >
+                    Submissions Table
+                </a>
+
+                <a
+                    class="button button-secondary"
+                    href="{{ url_for(
+                        'edit_lab',
+                        lab_id=lab.id
+                    ) }}"
+                >
+                    Edit Lab
+                </a>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- ================================================= -->
+    <!-- LAB STATE OVERVIEW -->
+    <!-- ================================================= -->
+
+    <div class="stat-grid">
+
+        <div class="stat">
+
+            <span class="stat-label">
+                Launch
+            </span>
+
+            <span class="stat-value">
+                {% if lab.launched %}
+                    Launched
+                {% else %}
+                    Draft
+                {% endif %}
+            </span>
+
+        </div>
+
+
+        <div class="stat">
+
+            <span class="stat-label">
+                Submission Window
+            </span>
+
+            <span class="stat-value">
+                {% if lab.submission_open %}
+                    Open
+                {% else %}
+                    Closed
+                {% endif %}
+            </span>
+
+        </div>
+
+
+        <div class="stat">
+
+            <span class="stat-label">
+                Visibility
+            </span>
+
+            <span class="stat-value">
+                {% if lab.visible %}
+                    Visible
+                {% else %}
+                    Hidden
+                {% endif %}
+            </span>
+
+        </div>
+
+
+        <div class="stat">
+
+            <span class="stat-label">
+                Submissions
+            </span>
+
+            <span class="stat-value">
+                {{ submissions|length }}
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- PUBLICATION RESULT MESSAGES -->
+    <!-- ================================================= -->
+
+    {% if request.args.get("published")|int > 0 %}
+
+        <div class="alert alert-success">
+
+            <strong>
+                Publication completed.
+            </strong>
+
+            <p>
+                {{ request.args.get("published")|int }}
+                grade(s) published successfully.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+
+    {% if request.args.get("already_published")|int > 0 %}
+
+        <div class="alert alert-info">
+
+            <strong>
+                Already published.
+            </strong>
+
+            <p>
+                {{ request.args.get("already_published")|int }}
+                submission(s) were already published and were skipped.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+
+    {% if request.args.get("not_ready")|int > 0 %}
+
+        <div class="alert alert-warning">
+
+            <strong>
+                Not ready for publication.
+            </strong>
+
+            <p>
+                {{ request.args.get("not_ready")|int }}
+                submission(s) were not ready to publish.
+                A submission must have:
+            </p>
+
+            <ul>
+
+                <li>
+                    automatic grading completed
+                </li>
+
+                <li>
+                    teacher score entered
+                </li>
+
+                <li>
+                    status <strong>graded</strong>
+                </li>
+
+                <li>
+                    not already be published
+                </li>
+
+            </ul>
+
+        </div>
+
+    {% endif %}
+
+
+    {% if request.args.get("email_errors")|int > 0 %}
+
+        <div class="alert alert-warning">
+
+            <strong>
+                Some emails could not be sent.
+            </strong>
+
+            <p>
+                {{ request.args.get("email_errors")|int }}
+                email(s) failed.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- ================================================= -->
+    <!-- LAB LAUNCH -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <div class="page-header">
+
+            <div>
+
+                <h2>
+                    Lab Launch
+                </h2>
+
+                <p class="subtitle">
+                    Control whether students can access this laboratory.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {% if lab.launched %}
+
+            <div class="status-published">
+
+                <span class="status-dot"></span>
+
+                <div>
+
+                    <strong>
+                        Lab launched
+                    </strong>
+
+                    <p>
+                        Students can access this laboratory.
+                    </p>
+
+                </div>
+
+            </div>
+
+        {% else %}
+
+            <div class="status-not-published">
+
+                <span class="status-dot"></span>
+
+                <div>
+
+                    <strong>
+                        Lab not launched
+                    </strong>
+
+                    <p>
+                        Students cannot access the laboratory yet.
+                    </p>
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'update_lab_launch',
+                lab_id=lab.id
+            ) }}"
+            style="margin-top: 20px;"
+        >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            {% if lab.launched %}
+
+                <button
+                    type="submit"
+                    name="action"
+                    value="unlaunch"
+                    class="button button-secondary"
+                    onclick="return confirm(
+                        'Are you sure you want to unlaunch this lab? Students will no longer be able to access the lab.'
+                    );"
+                >
+                    Unlaunch Lab
+                </button>
+
+            {% else %}
+
+                <button
+                    type="submit"
+                    name="action"
+                    value="launch"
+                    class="button button-primary"
+                    onclick="return confirm(
+                        'Are you sure you want to launch this lab?'
+                    );"
+                >
+                    Launch Lab
+                </button>
+
+            {% endif %}
+
+        </form>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- TEACHER LAB ASSIGNMENT -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <div class="page-header">
+
+            <div>
+
+                <h2>
+                    Lab Assignment
+                </h2>
+
+                <p class="subtitle">
+                    Official laboratory assignment and repository.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="button-group">
+
+            {% if assignment_url %}
+
+                <a
+                    class="button button-primary"
+                    href="{{ assignment_url }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open Lab on GitHub ↗
+                </a>
+
+            {% endif %}
+
+
+            <a
+                class="button button-secondary"
+                href="{{ url_for(
+                    'lab_details',
+                    lab_id=lab.id
+                ) }}"
+            >
+                Lab Details
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- SUBMISSION WINDOW -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <div class="page-header">
+
+            <div>
+
+                <h2>
+                    Submission Window
+                </h2>
+
+                <p class="subtitle">
+                    Control when students are allowed to submit this lab.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {% if lab.submission_open
+            and (
+                lab.submission_deadline is none
+                or now < lab.submission_deadline
+            )
+        %}
+
+            <div class="status-published">
+
+                <span class="status-dot"></span>
+
+                <div>
+
+                    <strong>
+                        Submissions open
+                    </strong>
+
+                    {% if lab.submission_deadline %}
+
+                        <p>
+                            Deadline:
+                            <strong>
+                                {{ lab.submission_deadline.strftime(
+                                    "%d %B %Y — %H:%M"
+                                ) }}
+                            </strong>
+                        </p>
+
+                    {% else %}
+
+                        <p>
+                            No deadline has been set.
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        {% else %}
+
+            <div class="status-not-published">
+
+                <span class="status-dot"></span>
+
+                <div>
+
+                    <strong>
+                        Submissions closed
+                    </strong>
+
+                    {% if lab.submission_deadline
+                        and now >= lab.submission_deadline %}
+
+                        <p>
+                            The submission deadline has passed.
+                        </p>
+
+                    {% else %}
+
+                        <p>
+                            Submissions were manually closed.
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'update_submission_settings',
+                lab_id=lab.id
+            ) }}"
+            style="margin-top: 22px;"
+        >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+
+                <label for="submission_deadline">
+                    Submission Deadline
+                </label>
+
+                <input
+                    type="datetime-local"
+                    id="submission_deadline"
+                    name="submission_deadline"
+
+                    {% if lab.submission_deadline %}
+
+                        value="{{
+                            lab.submission_deadline.strftime(
+                                '%Y-%m-%dT%H:%M'
+                            )
+                        }}"
+
+                    {% endif %}
+
+                >
+
+                <p class="muted">
+                    Leave empty for no automatic deadline.
+                </p>
+
+            </div>
+
+
+            <div class="button-group">
+
+                <button
+                    type="submit"
+                    name="action"
+                    value="save_deadline"
+                    class="button button-secondary"
+                >
+                    Save Deadline
+                </button>
+
+
+                {% if lab.submission_open %}
+
+                    <button
+                        type="submit"
+                        name="action"
+                        value="close"
+                        class="button button-secondary"
+                    >
+                        Close Submissions
+                    </button>
+
+                {% else %}
+
+                    <button
+                        type="submit"
+                        name="action"
+                        value="open"
+                        class="button button-primary"
+                    >
+                        Open Submissions
+                    </button>
+
+                {% endif %}
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- BULK ACTIONS -->
+    <!-- ================================================= -->
+
+    {% if submissions %}
+
+        <section class="card">
+
+            <div class="page-header">
+
+                <div>
+
+                    <h2>
+                        Bulk Actions
+                    </h2>
+
+                    <p class="subtitle">
+                        Apply an operation to every current submission
+                        of this laboratory.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="button-group">
+
+
+                <!-- ============================================== -->
+                <!-- GRADE ALL -->
+                <!-- ============================================== -->
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'grade_all_submissions',
+                        lab_id=lab.id
+                    ) }}"
+                >
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <button
+                        type="submit"
+                        class="button button-primary"
+                        onclick="return confirm(
+                            'Are you sure you want to automatically grade all current submissions for this lab?'
+                        );"
+                    >
+                        Grade All Submissions
+                    </button>
+
+                </form>
+
+
+                <!-- ============================================== -->
+                <!-- PUBLISH ALL -->
+                <!-- ============================================== -->
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'publish_all_ready_results',
+                        lab_id=lab.id
+                    ) }}"
+                >
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <button
+                        type="submit"
+                        class="button button-primary"
+                        onclick="return confirm(
+                            'Are you sure you want to publish all ready grades and send the results to students?'
+                        );"
+                    >
+                        Publish All Ready Grades
+                    </button>
+
+                </form>
+
+
+                <!-- ============================================== -->
+                <!-- ALLOW ALL -->
+                <!-- ============================================== -->
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'allow_resubmit_all',
+                        lab_id=lab.id
+                    ) }}"
+                >
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <button
+                        type="submit"
+                        class="button button-secondary"
+                        onclick="return confirm(
+                            'Allow all eligible current students to resubmit this lab?'
+                        );"
+                    >
+                        Allow Resubmit All
+                    </button>
+
+                </form>
+
+
+                <!-- ============================================== -->
+                <!-- UNBLOCK ALL -->
+                <!-- ============================================== -->
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'unblock_resubmit_all',
+                        lab_id=lab.id
+                    ) }}"
+                >
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <button
+                        type="submit"
+                        class="button button-secondary"
+                        onclick="return confirm(
+                            'Unblock resubmission requests for all current students in this lab?'
+                        );"
+                    >
+                        Unblock All Requests
+                    </button>
+
+                </form>
+
+
+                <!-- ============================================== -->
+                <!-- REJECT ALL -->
+                <!-- ============================================== -->
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'reject_resubmit_all',
+                        lab_id=lab.id
+                    ) }}"
+                >
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <button
+                        type="submit"
+                        class="button button-danger"
+                        onclick="return confirm(
+                            'Reject all pending resubmission requests for this lab?'
+                        );"
+                    >
+                        Reject All Requests
+                    </button>
+
+                </form>
+
+
+                <!-- ============================================== -->
+                <!-- BLOCK ALL -->
+                <!-- ============================================== -->
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'block_resubmit_all',
+                        lab_id=lab.id
+                    ) }}"
+                >
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <button
+                        type="submit"
+                        class="button button-danger"
+                        onclick="return confirm(
+                            'Block resubmission requests for all current students in this lab?'
+                        );"
+                    >
+                        Block All Requests
+                    </button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+    {% endif %}
+
+
+    <!-- ================================================= -->
+    <!-- SUBMISSIONS HEADER -->
+    <!-- ================================================= -->
+
+    <div class="page-header">
+
+        <div>
+
+            <p class="eyebrow">
+                Student Work
+            </p>
+
+            <h2>
+                Submissions
+            </h2>
+
+            <p class="subtitle">
+                Review, grade, publish, and manage student submissions.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- SUBMISSION LIST -->
+    <!-- ================================================= -->
+
+    {% if submissions %}
+
+        <div class="submissions-list">
+
+            {% for submission in submissions %}
+
+                <article class="submission-card">
+
+
+                    <!-- ================================================= -->
+                    <!-- STUDENT HEADER -->
+                    <!-- ================================================= -->
+
+                    <div class="notebook-header">
+
+                        <div>
+
+                            <h3>
+                                {{ submission.student.github_username }}
+                            </h3>
+
+                            <p class="muted">
+                                Attempt #{{ submission.attempt_number }} / 3
+                                {% if not submission.is_current %}
+                                    — historical
+                                {% endif %}
+                            </p>
+
+                        </div>
+
+
+                        <div class="button-group">
+
+                            <span class="pill pill-{{ submission.status }}">
+                                {{ submission.status|replace("_", " ") }}
+                            </span>
+
+
+                            {% if submission.grade
+                                and submission.grade.automatic_score is not none %}
+
+                                <span class="score-badge">
+
+                                    {{ "%.1f"|format(
+                                        submission.grade.automatic_score
+                                    ) }}%
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="pill pill-neutral">
+                                    Not graded
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- RESUBMISSION MANAGEMENT -->
+                    <!-- ================================================= -->
+
+                    {% if submission.is_current %}
+
+
+                        {% if submission.resubmission_blocked %}
+
+                            <div class="alert alert-warning">
+
+                                <strong>
+                                    Resubmission requests blocked
+                                </strong>
+
+                                <p>
+                                    This student cannot request
+                                    another attempt while requests
+                                    are blocked.
+                                </p>
+
+                            </div>
+
+
+                        {% elif submission.resubmission_requested %}
+
+                            <div class="alert alert-warning">
+
+                                <strong>
+                                    Resubmission requested
+                                </strong>
+
+                                <p>
+                                    This student has requested permission
+                                    to submit a new attempt.
+                                </p>
+
+
+                                <div
+                                    class="button-group"
+                                    style="margin-top: 14px;"
+                                >
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for(
+                                            'allow_resubmission',
+                                            submission_id=submission.id
+                                        ) }}"
+                                    >
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                        <button
+                                            type="submit"
+                                            class="button button-primary"
+                                            onclick="return confirm(
+                                                'Allow this student to submit one new attempt?'
+                                            );"
+                                        >
+                                            Allow Resubmit
+                                        </button>
+
+                                    </form>
+
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for(
+                                            'reject_resubmission',
+                                            submission_id=submission.id
+                                        ) }}"
+                                    >
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                        <button
+                                            type="submit"
+                                            class="button button-danger"
+                                            onclick="return confirm(
+                                                'Reject this resubmission request?'
+                                            );"
+                                        >
+                                            Reject
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                            </div>
+
+
+                        {% elif submission.resubmission_allowed %}
+
+                            <div class="alert alert-success">
+
+                                <strong>
+                                    Resubmission allowed
+                                </strong>
+
+                                <p>
+                                    This student is allowed to submit
+                                    one new attempt.
+                                </p>
+
+                            </div>
+
+
+                        {% elif submission.attempt_number >= 3 %}
+
+                            <div class="alert alert-info">
+
+                                <strong>
+                                    Maximum attempts reached
+                                </strong>
+
+                                <p>
+                                    This student has reached the maximum
+                                    of 3 attempts for this lab.
+                                </p>
+
+                            </div>
+
+
+                        {% elif submission.resubmission_rejections >= 3 %}
+
+                            <div class="alert alert-warning">
+
+                                <strong>
+                                    Resubmission requests exhausted
+                                </strong>
+
+                                <p>
+                                    This student's resubmission requests
+                                    have been rejected 3 times.
+                                </p>
+
+                            </div>
+
+                        {% endif %}
+
+
+                        <!-- ============================================== -->
+                        <!-- LAST DECISION -->
+                        <!-- ============================================== -->
+
+                        {% if submission.resubmission_message %}
+
+                            <div class="alert alert-info">
+
+                                <strong>
+                                    Last resubmission decision
+                                </strong>
+
+                                <p>
+                                    {{ submission.resubmission_message }}
+                                </p>
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endif %}
+
+
+                    <!-- ================================================= -->
+                    <!-- SUBMISSION FACTS -->
+                    <!-- ================================================= -->
+
+                    <div
+                        class="info-grid"
+                        style="margin-top: 18px;"
+                    >
+
+                        <div class="info-item">
+
+                            <span class="label">
+                                Automatic Grade
+                            </span>
+
+
+                            {% if submission.grade
+                                and submission.grade.automatic_score is not none %}
+
+                                <strong class="score">
+
+                                    {{ "%.1f"|format(
+                                        submission.grade.automatic_score
+                                    ) }}%
+
+                                </strong>
+
+                                <span class="meter">
+                                    <span
+                                        class="meter-bar"
+                                        style="width: {{ submission.grade.automatic_score }}%;"
+                                    ></span>
+                                </span>
+
+                            {% else %}
+
+                                <span class="not-graded">
+                                    Not graded
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <span class="label">
+                                Teacher Grade
+                            </span>
+
+
+                            {% if submission.grade
+                                and submission.grade.teacher_score is not none
+                                and submission.grade.published_at %}
+
+                                <strong class="score">
+
+                                    {{ "%.1f"|format(
+                                        submission.grade.teacher_score
+                                    ) }}%
+
+                                </strong>
+
+                            {% else %}
+
+                                <span class="not-graded">
+                                    Not published
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <span class="label">
+                                Snapshot
+                            </span>
+
+                            {% if submission.snapshot_path %}
+
+                                <strong class="score">
+                                    Frozen
+                                </strong>
+
+                            {% else %}
+
+                                <span class="not-graded">
+                                    No snapshot
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        {% if submission.is_current %}
+
+                            <div class="info-item">
+
+                                <span class="label">
+                                    Rejected Requests
+                                </span>
+
+                                <strong>
+                                    {{ submission.resubmission_rejections }} / 3
+                                </strong>
+
+                            </div>
+
+
+                            <div class="info-item">
+
+                                <span class="label">
+                                    Request Blocking
+                                </span>
+
+                                {% if submission.resubmission_blocked %}
+
+                                    <strong class="not-graded">
+                                        Blocked
+                                    </strong>
+
+                                {% else %}
+
+                                    <strong class="score">
+                                        Enabled
+                                    </strong>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+
+                        {% if submission.commit_sha %}
+
+                            <div class="info-item">
+
+                                <span class="label">
+                                    Submitted Commit
+                                </span>
+
+                                <code>
+                                    {{ submission.commit_sha[:12] }}
+                                </code>
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- FINAL GRADE -->
+                    <!-- ================================================= -->
+
+                    {% if submission.grade
+                        and submission.grade.published_at
+                        and submission.grade.automatic_score is not none
+                        and submission.grade.teacher_score is not none %}
+
+                        <div class="grade-box">
+
+                            <div>
+
+                                <span class="label">
+                                    Final Grade
+                                </span>
+
+                                <p class="muted">
+                                    70% automatic + 30% teacher
+                                </p>
+
+                            </div>
+
+                            <span class="grade-value">
+
+                                {{
+                                    "%.2f"|format(
+                                        (
+                                            0.7 *
+                                            submission.grade.automatic_score
+                                        )
+                                        +
+                                        (
+                                            0.3 *
+                                            submission.grade.teacher_score
+                                        )
+                                    )
+                                }}/100
+
+                            </span>
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <!-- ================================================= -->
+                    <!-- REPOSITORY -->
+                    <!-- ================================================= -->
+
+                    {% set repo_link = submission.repo_url|external_url %}
+
+                    <div style="margin-top: 18px;">
+
+                        <span class="label">
+                            Student Repository
+                        </span>
+
+                        {% if repo_link %}
+
+                            <a
+                                class="repo-link"
+                                href="{{ repo_link }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {{ submission.repo_url }}
+                            </a>
+
+                        {% else %}
+
+                            <span class="not-available">
+                                {{ submission.repo_url }}
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- ACTIONS -->
+                    <!-- ================================================= -->
+
+                    <div class="submission-actions">
+
+                        <a
+                            class="button button-primary"
+                            href="{{ url_for(
+                                'teacher_submission_page',
+                                submission_id=submission.id
+                            ) }}"
+                        >
+                            Teacher Grading
+                        </a>
+
+
+                        <a
+                            class="button button-secondary"
+                            href="{{ url_for(
+                                'submission_page',
+                                submission_id=submission.id
+                            ) }}"
+                        >
+                            View Submission
+                        </a>
+
+
+                        {% if submission.is_current %}
+
+                            {% if submission.resubmission_blocked %}
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'unblock_resubmission',
+                                        submission_id=submission.id
+                                    ) }}"
+                                >
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                    <button
+                                        type="submit"
+                                        class="button button-secondary"
+                                        onclick="return confirm(
+                                            'Unblock resubmission requests for this student?'
+                                        );"
+                                    >
+                                        Unblock Requests
+                                    </button>
+
+                                </form>
+
+                            {% else %}
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'block_resubmission',
+                                        submission_id=submission.id
+                                    ) }}"
+                                >
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                    <button
+                                        type="submit"
+                                        class="button button-danger"
+                                        onclick="return confirm(
+                                            'Block resubmission requests for this student?'
+                                        );"
+                                    >
+                                        Block Requests
+                                    </button>
+
+                                </form>
+
+                            {% endif %}
+
+                        {% endif %}
+
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+
+    {% else %}
+
+        <div class="empty-section">
+
+            <h3>
+                No submissions yet
+            </h3>
+
+            <p class="empty-message">
+                Students have not submitted this laboratory yet.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+
+{% endblock %}
