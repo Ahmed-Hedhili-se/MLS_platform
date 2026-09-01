@@ -74,6 +74,14 @@ from pathlib import Path
 # without editing code.
 GRADER_IMAGE = os.environ.get("GRADER_IMAGE") or "mls-grader:1.0"
 
+# Resource cap per grading container. The defaults suit the current
+# labs -- sklearn on a few tens of thousands of rows -- and let the
+# platform run on a small server. Raise them if a lab starts training
+# something genuinely heavy; the container is killed if it exceeds
+# the memory limit.
+GRADER_MEMORY = os.environ.get("GRADER_MEMORY") or "1g"
+GRADER_CPUS = os.environ.get("GRADER_CPUS") or "1"
+
 # The repository-URL rules live in snapshots.py so the JSON API can share
 # them. Kept under the original name for the callers below.
 validate_submission_repo_url = validate_repo_url
@@ -1738,10 +1746,10 @@ def _grade_submission_blocking(submission_id, notebook_filename=None):
         # -----------------------------------------------
 
         "--memory",
-        "2g",
+        GRADER_MEMORY,
 
         "--cpus",
-        "2",
+        GRADER_CPUS,
 
         "--pids-limit",
         "128",
