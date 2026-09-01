@@ -157,10 +157,48 @@ journalctl -u mls -f
 
 ## 6. Cloudflare Tunnel
 
+Two ways to do this. **The dashboard method is easier and is what the
+setup below assumes** — the tunnel's configuration lives in Cloudflare,
+so there is no config file to maintain on the server.
+
+### Dashboard method (recommended)
+
+Done in the Cloudflare dashboard *before* touching the server:
+
+1. Get a domain into your Cloudflare account — either register one via
+   **Domain Registration > Register Domain** (sold at cost), or add an
+   existing one and repoint its nameservers.
+2. **Networking > Tunnels > Create a tunnel**, connector **Cloudflared**,
+   name it `mls`, choose **Debian/Ubuntu (64-bit)**.
+3. Copy the install command it gives you. **It contains a secret token
+   — treat it as a credential.** Never commit it or paste it anywhere
+   public.
+4. In the tunnel's **Routes** tab: **Add route > Published application**
+   - Subdomain `mls`, your domain
+   - Service type `HTTP`, Service URL `localhost:5000`
+
+Then on the server, run the saved install command:
+
 ```bash
-# Install cloudflared (amd64 for a standard x86 machine)
-curl -L -o cloudflared.deb \
-  https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+# Paste the command from the dashboard. It installs cloudflared,
+# registers it as a systemd service, and connects.
+sudo cloudflared service install <YOUR-TOKEN>
+
+systemctl status cloudflared
+```
+
+The tunnel reads **Inactive** in the dashboard until this runs. That is
+expected, not a fault.
+
+The service URL port must match `MLS_PORT` in `.env` (default 5000).
+
+### CLI method (alternative)
+
+Use this if you would rather keep the tunnel config in the repo than in
+the dashboard. `deploy/cloudflared-config.yml` is the template.
+
+```bash
+curl -L -o cloudflared.deb   https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
 sudo dpkg -i cloudflared.deb
 
 cloudflared tunnel login
@@ -175,9 +213,11 @@ sudo cloudflared service install
 sudo systemctl enable --now cloudflared
 ```
 
-You need a domain on Cloudflare (a free plan is fine). If you do not
-have one, a cheap `.dev`/`.app` costs a few euros a year — worth it for
-a stable OAuth callback over 9 months.
+### Either way
+
+No inbound ports, no port forwarding, no firewall changes — the
+connector dials **out** to Cloudflare on port 7844. Confirm the machine
+can reach that before debugging anything else.
 
 ## 7. Backups
 

@@ -1,3 +1,7 @@
+# ONLY needed for the CLI (locally-managed) tunnel method.
+# If you created the tunnel in the Cloudflare dashboard, the
+# configuration lives there and this file is unused.
+#
 # Cloudflare Tunnel configuration for the MLS platform.
 #
 # Install to /etc/cloudflared/config.yml after running:
