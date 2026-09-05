@@ -23,6 +23,17 @@ SQLAlchemy==2.0.52
 Authlib==1.7.2
 python-dotenv==1.2.2
 
+# webapp/api.py imports config_loader, which reads the lab config.yaml
+# files. The lab definitions are needed to render lab pages, so this is
+# not part of the grading stack even though config_loader is shared
+# with it.
+PyYAML==6.0.3
+
+# Authlib's Flask client is built on its requests client and imports it
+# at module import time, so this is required even though no application
+# code calls requests directly.
+requests==2.34.2
+
 # Only used by `python -m webapp.app`. Hosts that supply their own
 # WSGI server (PythonAnywhere, gunicorn setups) do not need it, but it
 # is small and keeps the self-hosted path working from one file.
