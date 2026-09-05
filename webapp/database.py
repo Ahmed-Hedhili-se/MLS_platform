@@ -82,20 +82,41 @@ engine = create_engine(
 )
 
 
+# Journal mode for SQLite.
+#
+# WAL is the right choice on a normal disk: the default rollback
+# journal makes readers and writers block each other, so one student
+# submitting at a deadline stalls everyone loading a page. WAL lets
+# reads continue during a write.
+#
+# It cannot be used on a network filesystem. WAL coordinates readers
+# and writers through a shared-memory (-shm) file, which needs mmap
+# semantics that NFS and similar do not provide -- SQLite reports
+# "disk I/O error" on the first query rather than at PRAGMA time.
+# Shared hosts commonly put home directories on exactly that kind of
+# storage, so those deployments must set:
+#
+#     MLS_SQLITE_JOURNAL_MODE=DELETE
+#
+# The cost is that writes briefly block reads. With one teacher and a
+# few hundred students that is unnoticeable outside a deadline rush.
+SQLITE_JOURNAL_MODE = (
+    os.environ.get("MLS_SQLITE_JOURNAL_MODE") or "WAL"
+).strip().upper()
+
+
 @event.listens_for(engine, "connect")
 def _configure_sqlite(dbapi_connection, connection_record):
     """
-    Put SQLite in write-ahead-log mode on every new connection.
-
-    The default rollback journal makes readers and writers block each
-    other, so one student submitting at a deadline stalls everyone
-    loading a page. WAL lets reads continue during a write.
+    Apply the connection pragmas to every new SQLite connection.
     """
 
     cursor = dbapi_connection.cursor()
 
     try:
-        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute(
+            f"PRAGMA journal_mode={SQLITE_JOURNAL_MODE}"
+        )
         cursor.execute("PRAGMA synchronous=NORMAL")
         cursor.execute("PRAGMA busy_timeout=30000")
         cursor.execute("PRAGMA foreign_keys=ON")
