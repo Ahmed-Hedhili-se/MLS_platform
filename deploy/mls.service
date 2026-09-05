@@ -10,13 +10,13 @@ User=mls
 Group=mls
 
 # Adjust if the repository lives elsewhere.
-WorkingDirectory=/opt/MLS_platform/Mls-Platform
+WorkingDirectory=/opt/MLS_platform
 
 # The app reads .env itself; this only sets what must exist before
 # Python starts. Everything else belongs in .env.
 Environment=PYTHONUNBUFFERED=1
 
-ExecStart=/opt/MLS_platform/Mls-Platform/.venv/bin/python -m webapp.app
+ExecStart=/opt/MLS_platform/.venv/bin/python -m webapp.app
 
 Restart=always
 RestartSec=5

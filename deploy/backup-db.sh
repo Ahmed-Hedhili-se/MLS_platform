@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-PROJECT="${MLS_PROJECT:-/opt/MLS_platform/Mls-Platform}"
+PROJECT="${MLS_PROJECT:-/opt/MLS_platform}"
 DEST="${1:-$PROJECT/backups}"
 KEEP_DAYS="${KEEP_DAYS:-30}"
 

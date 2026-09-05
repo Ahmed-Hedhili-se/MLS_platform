@@ -94,8 +94,8 @@ than after 205 students are using it.
 
 ```bash
 sudo mkdir -p /opt
-sudo git clone <your-repo-url> /opt/MLS_platform
-cd /opt/MLS_platform/Mls-Platform
+sudo git clone https://github.com/MLs-labs/MLS_platform.git /opt/MLS_platform
+cd /opt/MLS_platform
 ```
 
 Paths in `mls.service`, `mls-backup.cron` and `backup-db.sh` assume
@@ -263,9 +263,9 @@ grade overnight or during a class.
 
 ```bash
 cd /opt/MLS_platform && sudo -u mls git pull
-sudo -u mls ./Mls-Platform/.venv/bin/pip install -r Mls-Platform/requirements.txt
+sudo -u mls .venv/bin/pip install -r requirements.txt
 # Rebuild the grader only if grade.py, labs/ or requirements-grader.txt changed:
-sudo docker build -f Mls-Platform/Dockerfile.grader -t mls-grader:1.0 Mls-Platform/
+sudo docker build -f Dockerfile.grader -t mls-grader:1.0 .
 sudo systemctl restart mls
 ```
 
