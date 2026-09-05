@@ -1,0 +1,29 @@
+# Dependencies for the web application only.
+#
+# requirements.txt installs the full grading stack -- jupyter, scipy,
+# scikit-learn, matplotlib, seaborn -- because in auto mode the server
+# is also the machine that executes notebooks.
+#
+# In manual mode (MLS_GRADING_MODE=manual) it never does. Grading runs
+# in the grader image on someone else's machine, so the server needs
+# nothing beyond Flask and its database. That difference is roughly
+# 1.5 GB of dependencies, which is what makes the app fit on a small
+# or disk-quota'd host.
+#
+#   Web server (manual mode):  pip install -r requirements-web.txt
+#   Grading machine:           pip install -r requirements.txt
+#                              (or just use the Docker image)
+#
+# Transitive dependencies -- Werkzeug, Jinja2, WTForms, cryptography --
+# are resolved by pip and deliberately not pinned here.
+
+Flask==3.1.3
+Flask-WTF==1.2.2
+SQLAlchemy==2.0.52
+Authlib==1.7.2
+python-dotenv==1.2.2
+
+# Only used by `python -m webapp.app`. Hosts that supply their own
+# WSGI server (PythonAnywhere, gunicorn setups) do not need it, but it
+# is small and keeps the self-hosted path working from one file.
+waitress==3.0.2
