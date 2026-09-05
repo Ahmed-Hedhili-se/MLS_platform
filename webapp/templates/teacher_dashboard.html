@@ -58,6 +58,76 @@
 
 
     <!-- ================================================= -->
+    <!-- OFFLINE GRADING -->
+    <!-- ================================================= -->
+    <!--
+        Only shown when MLS_GRADING_MODE=manual. In auto mode the
+        server grades on its own and none of this applies.
+    -->
+
+    {% if manual_grading %}
+
+        <section class="card">
+
+            <h2>Offline grading</h2>
+
+            <p class="subtitle">
+                This server collects submissions but does not grade
+                them. Export the pending ones, run
+                <code>grade_offline.py</code> on a machine with Docker,
+                then upload the results here.
+            </p>
+
+            <div class="button-group">
+
+                <a
+                    class="button button-secondary"
+                    href="{{ url_for('teacher_grading_export') }}"
+                >
+                    1. Export pending
+                </a>
+
+            </div>
+
+            <form
+                action="{{ url_for('teacher_grading_import') }}"
+                method="post"
+                enctype="multipart/form-data"
+            >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+                <label for="results">
+                    2. Upload results.json
+                </label>
+
+                <input
+                    type="file"
+                    id="results"
+                    name="results"
+                    accept="application/json,.json"
+                    required
+                >
+
+                <button
+                    class="button button-primary"
+                    type="submit"
+                >
+                    Import results
+                </button>
+
+            </form>
+
+        </section>
+
+    {% endif %}
+
+
+    <!-- ================================================= -->
     <!-- OVERVIEW -->
     <!-- ================================================= -->
 

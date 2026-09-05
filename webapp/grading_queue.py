@@ -22,6 +22,8 @@ import os
 import queue
 import threading
 
+from . import grading_mode
+
 
 log = logging.getLogger(__name__)
 
@@ -100,10 +102,57 @@ def _worker_loop():
             _jobs.task_done()
 
 
+def _mark_awaiting_manual_grading(submission_id):
+    """
+    Park a submission until the teacher's offline grading run.
+
+    Returning True from enqueue() without this would leave the
+    submission reading "submitted" forever, with nothing on the
+    teacher's page to show it still needs grading.
+    """
+
+    from .database import SessionLocal
+    from .models import Submission
+
+    try:
+        with SessionLocal() as db:
+
+            submission = db.get(Submission, submission_id)
+
+            if submission is None:
+                log.warning(
+                    "Cannot mark submission %s as awaiting manual "
+                    "grading: not found",
+                    submission_id,
+                )
+                return False
+
+            submission.status = grading_mode.AWAITING_STATUS
+            db.commit()
+
+            return True
+
+    except Exception:
+        log.exception(
+            "Could not mark submission %s as awaiting manual grading",
+            submission_id,
+        )
+        return False
+
+
 def start(app=None):
     """Start the worker threads once per process."""
 
     global _started
+
+    if grading_mode.is_manual():
+
+        if app is not None:
+            app.logger.info(
+                "Grading queue not started: MLS_GRADING_MODE=manual",
+            )
+
+        return
 
     with _start_lock:
 
@@ -138,6 +187,13 @@ def enqueue(handler, submission_id, *args):
     purpose: grading one notebook while the whole submission is being
     graded would have both runs writing the same rows.
     """
+
+    if grading_mode.is_manual():
+        # No container is going to run here. Park the submission for
+        # the teacher's offline pass and report success -- from the
+        # caller's point of view the work has been accepted, it just
+        # happens later and elsewhere.
+        return _mark_awaiting_manual_grading(submission_id)
 
     with _active_lock:
 

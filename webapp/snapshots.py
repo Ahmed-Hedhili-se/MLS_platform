@@ -227,6 +227,43 @@ def read_commit_sha(repo_path):
 # Path A -- clone a student repository
 # ============================================================
 
+def resolve_remote_commit_sha(repo_url):
+    """
+    Read the commit a repository's HEAD points at, without cloning it.
+
+    Manual grading mode does not need the student's files on the
+    server -- the teacher clones them on the machine that actually
+    grades. What the server does still need is a record of *which*
+    commit was submitted, so a push made after the deadline cannot
+    quietly change what gets graded.
+
+    One network round trip, nothing written to disk.
+    """
+
+    result = run_git(
+        ["ls-remote", repo_url, "HEAD"],
+        timeout=CLONE_TIMEOUT_SECONDS,
+    )
+
+    line = (result.stdout or "").strip().splitlines()
+
+    if not line:
+        raise RuntimeError(
+            "Repository has no HEAD -- it may be empty."
+        )
+
+    sha = line[0].split()[0].strip()
+
+    if len(sha) != 40 or not all(
+        character in "0123456789abcdef" for character in sha
+    ):
+        raise RuntimeError(
+            "Could not read a commit SHA from the repository."
+        )
+
+    return sha
+
+
 def create_repository_snapshot(repo_url, submission_id):
     """
     Clone a student's GitHub repository into an isolated submission

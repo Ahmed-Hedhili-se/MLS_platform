@@ -56,8 +56,14 @@ from .grading_db import (
     save_grading_result,
     finalize_lab_grade,
 )
+from . import grading_mode
 from . import grading_queue
-from .snapshots import create_repository_snapshot, validate_repo_url
+from . import offline_grading
+from .snapshots import (
+    create_repository_snapshot,
+    resolve_remote_commit_sha,
+    validate_repo_url,
+)
 from .submission_rules import (
     MAX_RESUBMISSION_REJECTIONS,
     MAX_SUBMISSION_ATTEMPTS,
@@ -999,12 +1005,23 @@ def submit_lab(lab_id):
 
         try:
 
-            snapshot_path, commit_sha = (
-                create_repository_snapshot(
-                    repo_url=repo_url,
-                    submission_id=submission.id,
+            if grading_mode.is_manual():
+
+                # Nothing on this server will execute the notebook, so
+                # there is no reason to hold a copy of it. Pin the
+                # commit and let the teacher's machine do the cloning.
+                snapshot_path = None
+
+                commit_sha = resolve_remote_commit_sha(repo_url)
+
+            else:
+
+                snapshot_path, commit_sha = (
+                    create_repository_snapshot(
+                        repo_url=repo_url,
+                        submission_id=submission.id,
+                    )
                 )
-            )
 
         except Exception as e:
 
@@ -3438,6 +3455,117 @@ def grade_one_notebook(submission_id):
             submission_id=submission_id,
         )
     )
+
+
+# ============================================================
+# Offline grading (MLS_GRADING_MODE=manual)
+# ============================================================
+
+@app.context_processor
+def inject_grading_mode():
+    """
+    Templates need to know whether this server grades or only collects,
+    so the offline-grading controls appear on exactly the deployments
+    that need them.
+    """
+
+    return {
+        "manual_grading": grading_mode.is_manual(),
+    }
+
+
+
+@app.route("/teacher/grading/export")
+@teacher_required
+def teacher_grading_export():
+    """
+    Download the pending submissions as a work file.
+
+    Served as an attachment rather than rendered, because the next step
+    is feeding it to grade_offline.py on a machine with Docker.
+    """
+
+    lab_id = request.args.get("lab_id", type=int)
+
+    include_graded = (
+        request.args.get("include_graded") == "1"
+    )
+
+    payload = offline_grading.export_pending(
+        lab_id=lab_id,
+        include_graded=include_graded,
+    )
+
+    app.logger.info(
+        "Teacher exported %s submission(s) for offline grading "
+        "(lab_id=%s, include_graded=%s)",
+        payload["count"],
+        lab_id,
+        include_graded,
+    )
+
+    suffix = f"_lab{lab_id}" if lab_id else ""
+
+    response = app.response_class(
+        json.dumps(payload, indent=2),
+        mimetype="application/json",
+    )
+
+    response.headers["Content-Disposition"] = (
+        f'attachment; filename="pending{suffix}.json"'
+    )
+
+    return response
+
+
+@app.route("/teacher/grading/import", methods=["POST"])
+@teacher_required
+def teacher_grading_import():
+    """
+    Apply a results file produced by grade_offline.py.
+    """
+
+    uploaded = request.files.get("results")
+
+    if uploaded is None or not uploaded.filename:
+        flash("No results file was selected.", "error")
+        return redirect(url_for("teacher_dashboard"))
+
+    try:
+        payload = json.loads(
+            uploaded.read().decode("utf-8")
+        )
+
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        flash(f"That file is not valid JSON: {exc}", "error")
+        return redirect(url_for("teacher_dashboard"))
+
+    try:
+        applied, errors = offline_grading.import_results(payload)
+
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("teacher_dashboard"))
+
+    app.logger.info(
+        "Teacher imported offline results: %s applied, %s error(s)",
+        applied,
+        len(errors),
+    )
+
+    if errors:
+        flash(
+            f"Imported {applied} notebook result(s), "
+            f"{len(errors)} failed: " + "; ".join(errors[:5]),
+            "warning",
+        )
+    else:
+        flash(
+            f"Imported {applied} notebook result(s).",
+            "success",
+        )
+
+    return redirect(url_for("teacher_dashboard"))
 
 
 # ============================================================

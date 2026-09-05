@@ -44,6 +44,7 @@ RUN pip install --no-cache-dir \
 
 COPY grade.py /grader/grade.py
 COPY grading_worker.py /grader/grading_worker.py
+COPY grade_offline.py /grader/grade_offline.py
 COPY config_loader.py /grader/config_loader.py
 
 COPY labs /grader/labs
